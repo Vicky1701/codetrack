@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getToken } from './authService'
 
 const API_BASE_URL = '/api'
 
@@ -8,6 +9,36 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 })
+
+// Add token to all requests
+api.interceptors.request.use(
+  (config) => {
+    const token = getToken()
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// Handle 401 errors (unauthorized)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid
+      localStorage.removeItem('token')
+      localStorage.removeItem('username')
+      localStorage.removeItem('email')
+      localStorage.removeItem('userId')
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
 
 export const loadProblems = async () => {
   try {
