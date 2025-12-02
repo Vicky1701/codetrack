@@ -58,5 +58,9 @@ public class Problem {
     
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SolvedDate> solvedDates = new ArrayList<>();
+    
+    @ElementCollection
+    @CollectionTable(name = "problem_approaches", joinColumns = @JoinColumn(name = "problem_id"))
+    private List<Approach> approaches = new ArrayList<>();
 }
 

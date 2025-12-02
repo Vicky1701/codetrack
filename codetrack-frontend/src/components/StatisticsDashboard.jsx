@@ -1,4 +1,4 @@
-import { BarChart3, TrendingUp, Clock, Star } from 'lucide-react'
+import { BarChart3, TrendingUp, Calendar, Star } from 'lucide-react'
 
 const StatisticsDashboard = ({ problems }) => {
   const stats = calculateStats(problems)
@@ -18,9 +18,9 @@ const StatisticsDashboard = ({ problems }) => {
         color="bg-orange-500"
       />
       <StatCard
-        title="Avg Time"
-        value={`${stats.avgTime} min`}
-        icon={<Clock className="w-6 h-6" />}
+        title="This Week"
+        value={stats.thisWeek}
+        icon={<Calendar className="w-6 h-6" />}
         color="bg-green-500"
       />
       <StatCard
@@ -62,8 +62,36 @@ const calculateStats = (problems) => {
     return daysSince > interval
   }).length
 
-  const totalTime = problems.reduce((sum, p) => sum + (p.totalTimeSpent || 0), 0)
-  const avgTime = total > 0 ? Math.round(totalTime / total) : 0
+  // Calculate problems solved this week
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const weekAgo = new Date(today)
+  weekAgo.setDate(today.getDate() - 7)
+  
+  const thisWeek = problems.filter(p => {
+    if (!p.solvedDates || p.solvedDates.length === 0) {
+      // Also check createdAt if no solvedDates
+      if (p.createdAt) {
+        const createdDate = new Date(p.createdAt)
+        createdDate.setHours(0, 0, 0, 0)
+        return createdDate >= weekAgo && createdDate <= today
+      }
+      return false
+    }
+    return p.solvedDates.some(sd => {
+      try {
+        // Handle both object format {date: "...", ...} and string format
+        const dateStr = sd.date || sd
+        if (!dateStr) return false
+        const solveDate = new Date(dateStr)
+        if (isNaN(solveDate.getTime())) return false
+        solveDate.setHours(0, 0, 0, 0)
+        return solveDate >= weekAgo && solveDate <= today
+      } catch (e) {
+        return false
+      }
+    })
+  }).length
 
   // Calculate streak based on solved dates
   let currentStreak = 0
@@ -95,7 +123,7 @@ const calculateStats = (problems) => {
     }
   }
 
-  return { total, needsRevision, avgTime, currentStreak }
+  return { total, needsRevision, thisWeek, currentStreak }
 }
 
 export default StatisticsDashboard

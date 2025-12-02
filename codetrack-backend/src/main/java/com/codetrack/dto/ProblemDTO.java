@@ -29,5 +29,6 @@ public class ProblemDTO {
     private Integer totalTimeSpent;
     private Double averageRating;
     private List<Map<String, Object>> solvedDates = new ArrayList<>();
+    private List<Map<String, String>> approaches = new ArrayList<>();
 }
 

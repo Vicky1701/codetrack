@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import ProblemCard from './ProblemCard'
 import EditProblemForm from './EditProblemForm'
+import BulkOperations from './BulkOperations'
 import { deleteProblem } from '../services/problemService'
 
 const ProblemList = ({
@@ -13,9 +14,17 @@ const ProblemList = ({
   onRefresh,
 }) => {
   const [editingId, setEditingId] = useState(null)
+  const [selectedIds, setSelectedIds] = useState([])
 
   const filteredProblems = problems.filter(p => {
-    const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase())
+    const searchLower = searchTerm.toLowerCase()
+    const matchesSearch = 
+      p.title.toLowerCase().includes(searchLower) ||
+      (p.notes && p.notes.toLowerCase().includes(searchLower)) ||
+      (p.platform && p.platform.toLowerCase().includes(searchLower)) ||
+      (p.tags && p.tags.some(tag => tag.toLowerCase().includes(searchLower))) ||
+      (p.link && p.link.toLowerCase().includes(searchLower))
+    
     const matchesPattern = selectedPattern === 'all' || p.pattern === selectedPattern
     const revisionInterval = p.revisionInterval || 7
     const matchesFilter = filter === 'all' || 
@@ -71,6 +80,12 @@ const ProblemList = ({
 
   const editingProblem = problems.find(p => p.id === editingId)
 
+  const toggleSelection = (id) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    )
+  }
+
   return (
     <>
       {editingProblem && (
@@ -83,7 +98,13 @@ const ProblemList = ({
           }}
         />
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <BulkOperations
+        problems={sortedProblems}
+        selectedIds={selectedIds}
+        setSelectedIds={setSelectedIds}
+        onRefresh={onRefresh}
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {sortedProblems.map(problem => (
           <ProblemCard
             key={problem.id}
@@ -93,6 +114,8 @@ const ProblemList = ({
             isEditing={editingId === problem.id}
             onEdit={() => setEditingId(problem.id)}
             onCancelEdit={() => setEditingId(null)}
+            isSelected={selectedIds.includes(problem.id)}
+            onToggleSelect={() => toggleSelection(problem.id)}
           />
         ))}
       </div>

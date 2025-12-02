@@ -2,6 +2,7 @@ package com.codetrack.service;
 
 import com.codetrack.dto.ProblemDTO;
 import com.codetrack.dto.RevisionDTO;
+import com.codetrack.entity.Approach;
 import com.codetrack.entity.Problem;
 import com.codetrack.entity.SolvedDate;
 import com.codetrack.repository.ProblemRepository;
@@ -68,6 +69,19 @@ public class ProblemService {
         problem.setTags(problemDTO.getTags());
         problem.setPriority(problemDTO.getPriority());
         problem.setRevisionInterval(problemDTO.getRevisionInterval());
+        
+        // Update approaches
+        if (problemDTO.getApproaches() != null) {
+            List<Approach> approaches = problemDTO.getApproaches().stream()
+                    .map(approachMap -> {
+                        Approach approach = new Approach();
+                        approach.setNotes(approachMap.get("notes") != null ? approachMap.get("notes") : "");
+                        approach.setCode(approachMap.get("code") != null ? approachMap.get("code") : "");
+                        return approach;
+                    })
+                    .collect(Collectors.toList());
+            problem.setApproaches(approaches);
+        }
         
         Problem updated = problemRepository.save(problem);
         return convertToDTO(updated);
@@ -140,6 +154,19 @@ public class ProblemService {
                 .collect(Collectors.toList());
         dto.setSolvedDates(solvedDatesList);
         
+        // Convert approaches
+        if (problem.getApproaches() != null) {
+            List<Map<String, String>> approaches = problem.getApproaches().stream()
+                    .map(approach -> {
+                        Map<String, String> approachMap = new HashMap<>();
+                        approachMap.put("notes", approach.getNotes() != null ? approach.getNotes() : "");
+                        approachMap.put("code", approach.getCode() != null ? approach.getCode() : "");
+                        return approachMap;
+                    })
+                    .collect(Collectors.toList());
+            dto.setApproaches(approaches);
+        }
+        
         return dto;
     }
     
@@ -154,6 +181,19 @@ public class ProblemService {
         problem.setTags(dto.getTags() != null ? dto.getTags() : new ArrayList<>());
         problem.setPriority(dto.getPriority());
         problem.setRevisionInterval(dto.getRevisionInterval() != null ? dto.getRevisionInterval() : 7);
+        
+        // Convert approaches
+        if (dto.getApproaches() != null) {
+            List<Approach> approaches = dto.getApproaches().stream()
+                    .map(approachMap -> {
+                        Approach approach = new Approach();
+                        approach.setNotes(approachMap.get("notes") != null ? approachMap.get("notes") : "");
+                        approach.setCode(approachMap.get("code") != null ? approachMap.get("code") : "");
+                        return approach;
+                    })
+                    .collect(Collectors.toList());
+            problem.setApproaches(approaches);
+        }
         
         return problem;
     }

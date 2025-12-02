@@ -93,7 +93,7 @@ export const markRevision = async (id, revisionData) => {
 
 export const exportData = async () => {
   try {
-    const response = await api.get('/export')
+    const response = await api.get('/problems/export')
     return response.data
   } catch (error) {
     console.error('Error exporting data:', error)
@@ -103,7 +103,7 @@ export const exportData = async () => {
 
 export const importData = async (data) => {
   try {
-    const response = await api.post('/import', data)
+    const response = await api.post('/problems/import', data)
     return response.data
   } catch (error) {
     console.error('Error importing data:', error)
